@@ -259,28 +259,61 @@
 
       <ModalsGettingStarted v-if="modal?.type == 'getting-started'" :heading="gettingStartedData.heading"
         :youtube-video-link="gettingStartedData.youtubeVideoLink" :description="gettingStartedData.description"
+        :is-sandbox="isDataResetEnabled"
+        :next-reset-time="nextResetTime"
         @close="closeModal" />
 
       <ModalsApiPlayground :show="modal?.type === 'apiPlayground'" :api="webhookPlaygroundApi" @close="closeModal" />
 
       <ModalsWebhookLogsLabel :show="modal?.type === 'label'" :current-label="modal?.data?.currentLabel"
         @close="closeModal" @save="saveLabel" @clear="clearLabel" />
+
+      <ModalsDataReset
+        :show="modal?.type === 'data-reset'"
+        @refresh="closeModal" />
     </div>
 
-    <!-- Floating Info Button -->
-    <button @click="openModal('getting-started', null)"
-      class="fixed bottom-6 right-6 bg-[#2d3142] text-gray-300 rounded-full shadow-lg transition-colors flex items-center justify-center w-10 h-10 hover:bg-[#353849]"
-      title="Info">
-      <Icon name="teenyicons:screen-outline" class="w-5 h-5" />
-    </button>
+    <!-- Floating Info Button with Timer -->
+    <div class="fixed bottom-6 right-6 flex items-center gap-2">
+      <button @click="openModal('getting-started', null)"
+        class="relative bg-[#2d3142] text-gray-300 rounded-xl shadow-lg transition-colors flex items-center justify-center w-10 h-10 hover:bg-[#353849]"
+        title="Info">
+        <Icon name="teenyicons:screen-outline" class="w-5 h-5" />
+        <!-- Timer Badge -->
+        <div v-if="shouldShowTimer"
+          class="absolute -top-3 -left-3 bg-amber-600 text-white text-[10px] font-medium rounded-md min-w-[20px] h-5 flex items-center justify-center px-1"
+          :title="`Data resets in ${formattedTimeRemaining}`">
+          {{ formattedTimeRemaining }}
+        </div>
+      </button>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useProjectStore } from '~/stores/project';
+import { useDataReset } from '~/composables/useDataReset';
 import HeaderContainer from '~/components/common/Header.vue';
 import CommonDropdown from '~/components/common/Dropdown.vue';
+
+// Data reset composable
+const {
+  isDataResetEnabled,
+  shouldShowTimer,
+  nextResetTime,
+  formattedTimeRemaining,
+  shouldShowDataResetModal,
+  clearDeletedProject
+} = useDataReset();
+
+// Watch for data reset and open modal
+watch(shouldShowDataResetModal, (shouldShow) => {
+  if (shouldShow) {
+    openModal('data-reset', null);
+    clearDeletedProject();
+  }
+});
 
 interface Webhook {
   id: string;

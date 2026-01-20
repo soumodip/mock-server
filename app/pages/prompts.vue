@@ -187,15 +187,29 @@
         :heading="gettingStartedData.heading"
         :youtube-video-link="gettingStartedData.youtubeVideoLink"
         :description="gettingStartedData.description"
+        :is-sandbox="isDataResetEnabled"
+        :next-reset-time="nextResetTime"
         @close="closeModal" />
+
+      <ModalsDataReset
+        :show="modal?.type === 'data-reset'"
+        @refresh="closeModal" />
     </div>
 
-    <!-- Floating Info Button -->
-    <button @click="openModal('getting-started', null)"
-      class="fixed bottom-6 right-6 bg-[#2d3142] text-gray-300 rounded-full shadow-lg transition-colors flex items-center justify-center w-10 h-10 hover:bg-[#353849]"
-      title="Info">
-      <Icon name="teenyicons:screen-outline" class="w-5 h-5" />
-    </button>
+    <!-- Floating Info Button with Timer -->
+    <div class="fixed bottom-6 right-6 flex items-center gap-2">
+      <button @click="openModal('getting-started', null)"
+        class="relative bg-[#2d3142] text-gray-300 rounded-xl shadow-lg transition-colors flex items-center justify-center w-10 h-10 hover:bg-[#353849]"
+        title="Info">
+        <Icon name="teenyicons:screen-outline" class="w-5 h-5" />
+        <!-- Timer Badge -->
+        <div v-if="shouldShowTimer"
+          class="absolute -top-3 -left-3 bg-amber-600 text-white text-[10px] font-medium rounded-md min-w-[20px] h-5 flex items-center justify-center px-1"
+          :title="`Data resets in ${formattedTimeRemaining}`">
+          {{ formattedTimeRemaining }}
+        </div>
+      </button>
+    </div>
   </div>
 </template>
 
@@ -203,6 +217,7 @@
 import { computed, onMounted, ref, provide, nextTick } from 'vue';
 import { usePromptsStore } from '~/stores/prompts';
 import { useProjectStore } from '~/stores/project';
+import { useDataReset } from '~/composables/useDataReset';
 import HeaderContainer from '~/components/common/Header.vue';
 import CommonDropdown from '~/components/common/Dropdown.vue';
 import NodejsTypeorm from '~/components/prompts/backend/nodejs-typeorm.vue';
@@ -217,6 +232,24 @@ import AdminNextjs from '~/components/prompts/admin-frontend/nextjs.vue';
 
 const promptsStore = usePromptsStore();
 const projectStore = useProjectStore();
+
+// Data reset composable
+const {
+  isDataResetEnabled,
+  shouldShowTimer,
+  nextResetTime,
+  formattedTimeRemaining,
+  shouldShowDataResetModal,
+  clearDeletedProject
+} = useDataReset();
+
+// Watch for data reset and open modal
+watch(shouldShowDataResetModal, (shouldShow) => {
+  if (shouldShow) {
+    openModal('data-reset', null);
+    clearDeletedProject();
+  }
+});
 
 // Check if a project is selected
 const hasProjectSelected = computed(() => !!projectStore.selectedProjectId);

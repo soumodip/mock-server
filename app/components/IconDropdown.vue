@@ -13,7 +13,7 @@
       <div
         v-if="isOpen"
         ref="menuRef"
-        class="fixed z-[9999] bg-[#2d3142] border border-gray-600 rounded-lg shadow-lg py-1 min-w-[100px]"
+        class="fixed z-[9999] bg-[#2d3142] border border-gray-600 rounded-lg shadow-lg py-1 min-w-[100px] font-poppins"
         :style="dropdownStyle">
         <button
           v-for="option in options"

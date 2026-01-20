@@ -29,7 +29,7 @@
         <div
           v-if="isOpen"
           ref="menuRef"
-          class="fixed z-[9999] bg-[#2d3142] border border-gray-600 rounded-xl shadow-lg max-h-60 overflow-auto"
+          class="fixed z-[9999] bg-[#2d3142] border border-gray-600 rounded-xl shadow-lg max-h-60 overflow-auto font-poppins"
           :style="dropdownStyle"
         >
           <div class="py-1">
