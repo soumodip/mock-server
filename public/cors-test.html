@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CORS Testing Page</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1a1d2e;
+      color: #e5e7eb;
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .container {
+      background: #242736;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    h1 {
+      color: #fff;
+      margin-top: 0;
+    }
+    h2 {
+      color: #9ca3af;
+      font-size: 18px;
+      margin-bottom: 16px;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      background: #1a1d2e;
+      border: 1px solid #4a5568;
+      border-radius: 8px;
+      color: #e5e7eb;
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+    button {
+      padding: 12px 24px;
+      background: #6366f1;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      margin-right: 8px;
+    }
+    button:hover {
+      background: #4f46e5;
+    }
+    button.secondary {
+      background: #2d3142;
+    }
+    button.secondary:hover {
+      background: #353849;
+    }
+    .result {
+      background: #1a1d2e;
+      border: 1px solid #4a5568;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 16px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .success {
+      border-color: #10b981;
+      color: #10b981;
+    }
+    .error {
+      border-color: #ef4444;
+      color: #ef4444;
+    }
+    .info {
+      background: #2d3142;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 16px;
+      font-size: 13px;
+    }
+    .info strong {
+      color: #6366f1;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔒 CORS Testing Page</h1>
+
+  <div class="container">
+    <h2>Test Configuration</h2>
+    <div class="info">
+      <strong>Current Origin:</strong> <span id="currentOrigin"></span>
+    </div>
+    <div class="info">
+      <strong>Instructions:</strong> Enter your integration ID below and click "Load SDK" to test CORS functionality.
+      If your integration has allowed origins configured, this page will only work if the current origin is in the allowed list.
+    </div>
+
+    <input
+      type="text"
+      id="integrationId"
+      placeholder="Enter Integration ID (e.g., int_123456789_abcdef)"
+    />
+    <button onclick="loadSDK()">Load SDK</button>
+    <button class="secondary" onclick="clearResults()">Clear Results</button>
+
+    <div id="sdkResult"></div>
+  </div>
+
+  <div class="container">
+    <h2>Test API Request</h2>
+    <div class="info">
+      After loading the SDK successfully, you can test an API request to verify CORS is working for API calls as well.
+    </div>
+
+    <input
+      type="text"
+      id="apiPath"
+      placeholder="Enter API Path (e.g., /api/user)"
+      value="/api/user"
+    />
+    <button onclick="testAPIRequest()">Test API Request</button>
+
+    <div id="apiResult"></div>
+  </div>
+
+  <div class="container">
+    <h2>How to Test CORS</h2>
+    <ol style="line-height: 1.8; color: #9ca3af;">
+      <li>Create an integration in your API Mocks application</li>
+      <li>Add allowed origins to the integration (e.g., <code>http://localhost:4001</code>)</li>
+      <li>Enter the integration ID in the input above and click "Load SDK"</li>
+      <li>If the current origin is allowed, the SDK will load successfully</li>
+      <li>If the origin is not allowed, you'll see a 403 CORS error</li>
+      <li>Test from different origins (ports or domains) to verify blocking works</li>
+    </ol>
+  </div>
+
+  <script>
+    // Display current origin
+    document.getElementById('currentOrigin').textContent = window.location.origin;
+
+    let sessionId = null;
+    let currentIntegrationId = null;
+
+    function loadSDK() {
+      const integrationId = document.getElementById('integrationId').value.trim();
+      const resultDiv = document.getElementById('sdkResult');
+
+      if (!integrationId) {
+        resultDiv.innerHTML = '<div class="result error">Please enter an integration ID</div>';
+        return;
+      }
+
+      currentIntegrationId = integrationId;
+      resultDiv.innerHTML = '<div class="result">Loading SDK...</div>';
+
+      // Create script element to load SDK
+      const script = document.createElement('script');
+      script.src = `${window.location.origin}/api/sdk/${integrationId}`;
+
+      script.onload = () => {
+        resultDiv.innerHTML = '<div class="result success">✅ SDK loaded successfully!\n\nOrigin is allowed. The SDK script has been executed and the Mock Server SDK panel should be visible on the page.</div>';
+
+        // Try to extract session ID from the SDK container
+        setTimeout(() => {
+          const sdkContainer = document.getElementById('mock-server-sdk');
+          if (sdkContainer) {
+            const sessionInfoText = sdkContainer.querySelector('[style*="Session ID"]');
+            if (sessionInfoText) {
+              // Extract session ID from the content
+              const matches = sessionInfoText.textContent.match(/sess_[a-zA-Z0-9_]+/);
+              if (matches) {
+                sessionId = matches[0];
+                resultDiv.innerHTML += `\n\nSession ID: ${sessionId}`;
+              }
+            }
+          }
+        }, 500);
+      };
+
+      script.onerror = (error) => {
+        resultDiv.innerHTML = `<div class="result error">❌ Failed to load SDK\n\nError: ${error}\n\nPossible reasons:\n1. Origin not allowed by CORS policy\n2. Invalid integration ID\n3. Integration is inactive\n\nCheck browser console for detailed error message.</div>`;
+      };
+
+      document.body.appendChild(script);
+    }
+
+    async function testAPIRequest() {
+      const apiPath = document.getElementById('apiPath').value.trim();
+      const resultDiv = document.getElementById('apiResult');
+
+      if (!apiPath) {
+        resultDiv.innerHTML = '<div class="result error">Please enter an API path</div>';
+        return;
+      }
+
+      if (!currentIntegrationId) {
+        resultDiv.innerHTML = '<div class="result error">Please load SDK first</div>';
+        return;
+      }
+
+      if (!sessionId) {
+        resultDiv.innerHTML = '<div class="result error">Session ID not found. Please ensure SDK loaded successfully.</div>';
+        return;
+      }
+
+      resultDiv.innerHTML = '<div class="result">Making API request...</div>';
+
+      try {
+        const response = await fetch(`${window.location.origin}/api/sdk/${currentIntegrationId}/${sessionId}${apiPath}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          resultDiv.innerHTML = `<div class="result success">✅ API Request Successful\n\nStatus: ${response.status}\nResponse:\n${JSON.stringify(data, null, 2)}</div>`;
+        } else {
+          resultDiv.innerHTML = `<div class="result error">❌ API Request Failed\n\nStatus: ${response.status}\nResponse:\n${JSON.stringify(data, null, 2)}</div>`;
+        }
+      } catch (error) {
+        resultDiv.innerHTML = `<div class="result error">❌ API Request Failed\n\nError: ${error.message}\n\nThis could be due to CORS policy blocking the request.</div>`;
+      }
+    }
+
+    function clearResults() {
+      document.getElementById('sdkResult').innerHTML = '';
+      document.getElementById('apiResult').innerHTML = '';
+      sessionId = null;
+      currentIntegrationId = null;
+
+      // Remove SDK container if exists
+      const sdkContainer = document.getElementById('mock-server-sdk');
+      if (sdkContainer) {
+        sdkContainer.remove();
+      }
+    }
+  </script>
+</body>
+</html>

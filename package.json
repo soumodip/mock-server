@@ -1,0 +1,47 @@
+{
+  "name": "default-project",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "dev-expose": "nuxt dev --host 0.0.0.0",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "start": "pm2 start ecosystem.config.cjs",
+    "logs": "pm2 logs mock-server",
+    "restart": "pm2 restart mock-server",
+    "stop": "pm2 stop mock-server",
+    "postinstall": "nuxt prepare",
+    "setup-data": "rm -rf data .env && mkdir -p data && echo '[]' > data/apis.json && echo '[{\"username\":\"username\",\"password\":\"password\",\"permissions\":[\"read\",\"write\",\"delete\"],\"isActive\":true}]' > data/auth.json && touch data/db.sqlite && echo '[]' > data/objects.json && echo '[]' > data/projects.json && echo '{}' > data/settings.json && sed \"s/your_jwt_secret_key/$(uuidgen)/\" .env.example > .env",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@nuxt/fonts": "^0.11.4",
+    "@nuxt/icon": "^2.0.0",
+    "@nuxt/image": "^1.11.0",
+    "@nuxtjs/tailwindcss": "^6.14.0",
+    "@pinia/nuxt": "^0.11.2",
+    "@types/jsonwebtoken": "^9.0.10",
+    "better-sqlite3": "^12.4.1",
+    "js-yaml": "^4.1.1",
+    "jsonwebtoken": "^9.0.2",
+    "jszip": "^3.10.1",
+    "nuxt": "^4.1.3",
+    "pinia": "^3.0.3",
+    "vue": "^3.5.22",
+    "vue-router": "^4.5.1",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@nuxt/test-utils": "^3.21.0",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^24.7.1",
+    "@vitest/coverage-v8": "^3.2.4",
+    "happy-dom": "^20.0.11",
+    "vitest": "^3.2.4"
+  }
+}

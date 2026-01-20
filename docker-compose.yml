@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  mock-server:
+    build: .
+    container_name: mock-server
+    ports:
+      - "${PORT:-4001}:${PORT:-4001}"
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+    command: sh -c "test -f /app/data/apis.json || npm run setup-data && npm run preview"
+    restart: unless-stopped
