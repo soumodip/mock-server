@@ -13,7 +13,7 @@
     "restart": "pm2 restart mock-server",
     "stop": "pm2 stop mock-server",
     "postinstall": "nuxt prepare",
-    "setup-data": "rm -rf data .env && mkdir -p data && echo '[]' > data/apis.json && echo '[{\"username\":\"username\",\"password\":\"password\",\"permissions\":[\"read\",\"write\",\"delete\"],\"isActive\":true}]' > data/auth.json && touch data/db.sqlite && echo '[]' > data/objects.json && echo '[]' > data/projects.json && echo '{}' > data/settings.json && sed \"s/your_jwt_secret_key/$(uuidgen)/\" .env.example > .env",
+    "setup-data": "rm -rf data .env && mkdir -p data && echo '[]' > data/apis.json && echo '[{\"username\":\"username\",\"password\":\"password\",\"permissions\":[\"read\",\"write\",\"delete\"],\"isActive\":true}]' > data/auth.json && touch data/db.sqlite && echo '[]' > data/objects.json && echo '[]' > data/projects.json && echo '{}' > data/settings.json && sed -e \"s/your_jwt_secret_key/$(uuidgen)/\" -e \"s/DATA_RESET_INTERVAL_MS=3600000/DATA_RESET_INTERVAL_MS=120000/\" -e \"s/IS_DATA_RESET_MODE=false/IS_DATA_RESET_MODE=false/\" .env.example > .env",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"

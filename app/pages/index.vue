@@ -948,15 +948,19 @@
         :heading="gettingStartedData.heading"
         :youtube-video-link="gettingStartedData.youtubeVideoLink"
         :description="gettingStartedData.description"
+        :is-sandbox="isDataResetEnabled"
+        :next-reset-time="nextResetTime"
         @close="closeModal" />
     </div>
 
     <!-- Floating Info Button -->
-    <button @click="openModal('getting-started', null)"
-      class="fixed bottom-6 right-6 bg-[#2d3142] text-gray-300 rounded-lg shadow-lg transition-colors flex items-center justify-center w-10 h-10 hover:bg-[#353849]"
-      title="Info">
-      <Icon name="teenyicons:screen-outline" class="w-5 h-5" />
-    </button>
+    <div class="fixed bottom-6 right-6 flex items-center gap-2">
+      <button @click="openModal('getting-started', null)"
+        class="relative bg-[#2d3142] text-gray-300 rounded-xl shadow-lg transition-colors flex items-center justify-center w-10 h-10 hover:bg-[#353849]"
+        title="Info">
+        <Icon name="teenyicons:screen-outline" class="w-5 h-5" />
+      </button>
+    </div>
   </div>
 </template>
 
@@ -968,6 +972,8 @@ import { useApiStore } from '~/stores/api';
 import { useObjectStore } from '~/stores/object';
 import { useProjectStore, normalizeGroup } from '~/stores/project';
 import type { AuthType, AuthConfig, ProjectGroup } from '~/stores/project';
+// Composables
+import { useDataReset } from '~/composables/useDataReset';
 // Types
 import type { Modal } from '~/types/index';
 
@@ -981,6 +987,9 @@ const { objects, loading: objectsLoading, error: objectsError } = storeToRefs(ob
 
 const projectStore = useProjectStore();
 const appConfig = useAppConfig();
+
+// Data reset (singleton — intervals are managed by DataResetOverlay in layout)
+const { isDataResetEnabled, nextResetTime } = useDataReset();
 
 const modal = ref<Modal | null>(null);
 const accessTokenInput = ref('');
