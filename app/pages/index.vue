@@ -521,7 +521,17 @@
       </div>
 
       <div class="flex justify-between items-center mb-4">
-        <h1 class="text-xl font-medium text-gray-300">APIs</h1>
+        <div class="flex items-center gap-3">
+          <h1 class="text-xl font-medium text-gray-300">APIs</h1>
+          <div v-if="isPopulateMode" class="flex items-center gap-2">
+            <span class="text-xs text-indigo-400 bg-indigo-900/30 px-2 py-0.5 rounded">Select APIs to populate</span>
+            <button @click="exitPopulateMode"
+              class="text-gray-400 mt-1"
+              title="Exit selection mode">
+              <Icon name="mdi:close" class="w-4 h-4" />
+            </button>
+          </div>
+        </div>
         <div class="flex gap-2">
           <button
             v-if="hasProjects && canWrite()"
@@ -552,6 +562,15 @@
             <Icon name="mdi:plus" class="w-4 h-4" />
             Create API
           </button>
+          <IconDropdown
+            v-if="hasProjects && canWrite() && filteredApis.length > 0"
+            icon="entypo:dots-three-vertical"
+            alignment="bottom-right"
+            min-width="240px"
+            title="More actions"
+            :options="[{ value: 'populate', label: 'Populate APIs with Real Data' }]"
+            @option-selected="handlePopulateOption"
+          />
         </div>
       </div>
 
@@ -578,6 +597,16 @@
         <table class="min-w-full divide-y divide-gray-700">
           <thead class="bg-[#1f2230]">
             <tr>
+              <th v-if="isPopulateMode" class="px-4 py-3 text-center text-xs font-medium text-gray-400 uppercase tracking-wider w-10">
+                <button @click="toggleSelectAllApis"
+                  class="relative inline-flex items-center justify-center w-4 h-4 rounded border-2 transition-all duration-200"
+                  :class="selectedApiIds.size === filteredApis.length && filteredApis.length > 0
+                    ? 'bg-indigo-600 border-indigo-600'
+                    : 'bg-[#2d3142] border-gray-600 hover:border-gray-500'">
+                  <Icon name="mdi:check" class="w-3 h-3 text-white transition-all duration-200"
+                    :class="selectedApiIds.size === filteredApis.length && filteredApis.length > 0 ? 'opacity-100 scale-100' : 'opacity-0 scale-0'" />
+                </button>
+              </th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                 Sl.No
               </th>
@@ -608,7 +637,7 @@
             <template v-for="(group, groupIndex) in groupedApis" :key="group.groupName">
               <!-- Group Header Row -->
               <tr class="bg-[#1a1d2e] border-t-2 border-gray-600/50">
-                <td colspan="8" class="px-6 py-3">
+                <td :colspan="isPopulateMode ? 9 : 8" class="px-6 py-3">
                   <div class="flex flex-row items-center gap-2 text-sm font-normal text-gray-300">
                     <Icon name="mdi:folder-outline" class="w-4 h-4" />
                     <!-- Even though unnamed apis come under Ungrouped, we will still show it as '-' -->
@@ -628,6 +657,16 @@
               <!-- API Rows in this group -->
               <template v-for="(api, apiIndex) in group.apis" :key="api.id">
                 <tr class="hover:bg-[#2d3142] transition-colors">
+                <td v-if="isPopulateMode" class="px-4 py-3 text-center w-10">
+                  <button @click="toggleApiSelection(api.id)"
+                    class="relative inline-flex items-center justify-center w-4 h-4 rounded border-2 transition-all duration-200"
+                    :class="selectedApiIds.has(api.id)
+                      ? 'bg-indigo-600 border-indigo-600'
+                      : 'bg-[#2d3142] border-gray-600 hover:border-gray-500'">
+                    <Icon name="mdi:check" class="w-3 h-3 text-white transition-all duration-200"
+                      :class="selectedApiIds.has(api.id) ? 'opacity-100 scale-100' : 'opacity-0 scale-0'" />
+                  </button>
+                </td>
                 <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-300">
                   {{ filteredApis.findIndex(a => a.id === api.id) + 1 }}
                 </td>
@@ -948,15 +987,38 @@
         :heading="gettingStartedData.heading"
         :youtube-video-link="gettingStartedData.youtubeVideoLink"
         :description="gettingStartedData.description"
+        :is-sandbox="isDataResetEnabled"
+        :next-reset-time="nextResetTime"
         @close="closeModal" />
+
+      <ModalsPopulateData
+        :show="modal?.type === 'populateData'"
+        :apis="selectedApisForPopulation"
+        @close="handlePopulateClose"
+        @generated="handlePopulateGenerated" />
+    </div>
+
+    <!-- Populate Selection Bar -->
+    <div v-if="isPopulateMode && selectedApiIds.size > 0"
+      class="fixed bottom-0 left-0 right-0 z-30 bg-[#242736] border-t border-gray-700 px-6 py-3">
+      <div class="max-w-7xl mx-auto flex items-center justify-between">
+        <span class="text-sm text-gray-300">{{ selectedApiIds.size }} API(s) selected</span>
+        <button @click="openModal('populateData', null)"
+          class="px-4 py-2 text-gray-300 rounded-full flex items-center gap-2 text-sm font-medium">
+          <Icon name="carbon:data-bin" class="w-4 h-4" />
+          Populate Real Data
+        </button>
+      </div>
     </div>
 
     <!-- Floating Info Button -->
-    <button @click="openModal('getting-started', null)"
-      class="fixed bottom-6 right-6 bg-[#2d3142] text-gray-300 rounded-lg shadow-lg transition-colors flex items-center justify-center w-10 h-10 hover:bg-[#353849]"
-      title="Info">
-      <Icon name="teenyicons:screen-outline" class="w-5 h-5" />
-    </button>
+    <div :class="['fixed right-6 flex items-center gap-2', isPopulateMode && selectedApiIds.size > 0 ? 'bottom-[70px]' : 'bottom-6']">
+      <button @click="openModal('getting-started', null)"
+        class="relative bg-[#2d3142] text-gray-300 rounded-xl shadow-lg transition-colors flex items-center justify-center w-10 h-10 hover:bg-[#353849]"
+        title="Info">
+        <Icon name="teenyicons:screen-outline" class="w-5 h-5" />
+      </button>
+    </div>
   </div>
 </template>
 
@@ -968,6 +1030,8 @@ import { useApiStore } from '~/stores/api';
 import { useObjectStore } from '~/stores/object';
 import { useProjectStore, normalizeGroup } from '~/stores/project';
 import type { AuthType, AuthConfig, ProjectGroup } from '~/stores/project';
+// Composables
+import { useDataReset } from '~/composables/useDataReset';
 // Types
 import type { Modal } from '~/types/index';
 
@@ -982,12 +1046,20 @@ const { objects, loading: objectsLoading, error: objectsError } = storeToRefs(ob
 const projectStore = useProjectStore();
 const appConfig = useAppConfig();
 
+// Data reset (singleton — intervals are managed by DataResetOverlay in layout)
+const { isDataResetEnabled, nextResetTime } = useDataReset();
+const toast = useToast();
+
 const modal = ref<Modal | null>(null);
 const accessTokenInput = ref('');
 const authTypeInput = ref<AuthType | ''>('');
 const authConfigInput = ref<AuthConfig>({});
 const showExposeServer = ref(false);
 const mockServerBaseUri = appConfig.baseUri || `http://localhost:4001`;
+
+// Populate APIs with Real Data mode
+const isPopulateMode = ref(false);
+const selectedApiIds = ref<Set<string>>(new Set());
 
 // Shining animation for Upload OpenAPI Spec button when new project is created
 const showUploadButtonShine = ref(false);
@@ -1248,6 +1320,60 @@ watch(selectedProject, (newProject) => {
   }
 }, { immediate: true });
 
+// Populate APIs with Real Data
+const handlePopulateOption = async (option: { value: string | number }) => {
+  if (option.value === 'populate') {
+    try {
+      const llmConfig = await $fetch('/api/llm');
+      if (!llmConfig) {
+        toast.info('No LLM provider configured. Please configure an LLM provider in Settings first.');
+        return;
+      }
+      isPopulateMode.value = true;
+      selectedApiIds.value = new Set();
+    } catch {
+      toast.error('Failed to check LLM configuration. Please try again.');
+    }
+  }
+};
+
+const toggleApiSelection = (apiId: string) => {
+  const newSet = new Set(selectedApiIds.value);
+  if (newSet.has(apiId)) {
+    newSet.delete(apiId);
+  } else {
+    newSet.add(apiId);
+  }
+  selectedApiIds.value = newSet;
+};
+
+const toggleSelectAllApis = () => {
+  if (selectedApiIds.value.size === filteredApis.value.length) {
+    selectedApiIds.value = new Set();
+  } else {
+    selectedApiIds.value = new Set(filteredApis.value.map(a => a.id));
+  }
+};
+
+const exitPopulateMode = () => {
+  isPopulateMode.value = false;
+  selectedApiIds.value = new Set();
+};
+
+const selectedApisForPopulation = computed(() => {
+  return filteredApis.value.filter(a => selectedApiIds.value.has(a.id));
+});
+
+const handlePopulateClose = () => {
+  closeModal();
+};
+
+const handlePopulateGenerated = async () => {
+  closeModal();
+  exitPopulateMode();
+  await apiStore.fetchApis();
+};
+
 // Methods
 const openModal = (type: string, data: any) => {
   modal.value = { type, data };
@@ -1329,7 +1455,7 @@ const toggleProjectAuth = async () => {
     }
   } catch (error) {
     console.error('Failed to toggle auth:', error);
-    alert('Failed to toggle auth');
+    toast.error('Failed to toggle auth');
   }
 };
 
@@ -1366,7 +1492,7 @@ const updateAuthConfig = async () => {
   } catch (error: any) {
     console.error('Failed to update auth config:', error);
     console.error('Error details:', error.data || error.message || error);
-    alert(`Failed to update auth config: ${error.data?.message || error.message || 'Unknown error'}`);
+    toast.error(`Failed to update auth config: ${error.data?.message || error.message || 'Unknown error'}`);
   }
 };
 
@@ -1386,7 +1512,7 @@ const regenerateBearerToken = async () => {
     });
   } catch (error) {
     console.error('Failed to regenerate bearer token:', error);
-    alert('Failed to regenerate bearer token');
+    toast.error('Failed to regenerate bearer token');
   }
 };
 
@@ -1500,7 +1626,7 @@ const regenerateAuthCredentials = async () => {
     if (error?.data?.message) {
       console.error('Server error:', error.data.message);
     }
-    alert(`Failed to update after regeneration: ${error.data?.message || error.message || 'Unknown error'}`);
+    toast.error(`Failed to update after regeneration: ${error.data?.message || error.message || 'Unknown error'}`);
   }
 };
 
@@ -1516,7 +1642,7 @@ const updateAccessToken = async () => {
     });
   } catch (error) {
     console.error('Failed to update access token:', error);
-    alert('Failed to update access token');
+    toast.error('Failed to update access token');
   }
 };
 
@@ -1535,7 +1661,7 @@ const regenerateAccessToken = async () => {
     accessTokenInput.value = newAccessToken;
   } catch (error) {
     console.error('Failed to regenerate access token:', error);
-    alert('Failed to regenerate access token');
+    toast.error('Failed to regenerate access token');
   }
 };
 
@@ -1568,7 +1694,7 @@ const handleCreateProject = async (name: string) => {
     window.location.href = `/?project_id=${newProject.id}&new_project=1`;
   } catch (error) {
     console.error('Failed to create project:', error);
-    alert('Failed to create project');
+    toast.error('Failed to create project');
   }
 };
 
@@ -1588,7 +1714,7 @@ const handleUploadProject = async (data: { project: any; apis: any[]; objects: a
     closeModal();
   } catch (error) {
     console.error('Failed to upload project:', error);
-    alert('Failed to upload project');
+    toast.error('Failed to upload project');
   }
 };
 
@@ -1599,7 +1725,7 @@ const handleDeleteProject = async () => {
     closeModal();
   } catch (error) {
     console.error('Failed to delete project:', error);
-    alert('Failed to delete project');
+    toast.error('Failed to delete project');
   }
 };
 
@@ -2593,7 +2719,7 @@ const handleDeleteApi = async () => {
     closeModal();
   } catch (error) {
     console.error('Failed to delete API:', error);
-    alert('Failed to delete API');
+    toast.error('Failed to delete API');
   }
 };
 
@@ -2667,7 +2793,7 @@ const handleDeleteObject = async () => {
     closeModal();
   } catch (error) {
     console.error('Failed to delete object:', error);
-    alert('Failed to delete object');
+    toast.error('Failed to delete object');
   }
 };
 

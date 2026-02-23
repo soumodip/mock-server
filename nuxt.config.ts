@@ -8,7 +8,9 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       enableAuth: process.env.IS_AUTH || 'false',
-      isDocsMode: process.env.IS_DOCS_MODE || 'false'
+      isDocsMode: process.env.IS_DOCS_MODE || 'false',
+      isDataResetMode: process.env.IS_DATA_RESET_MODE || 'false',
+      dataResetIntervalMs: parseInt(process.env.DATA_RESET_INTERVAL_MS || '3600000')
     }
   },
   tailwindcss: {

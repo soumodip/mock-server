@@ -17,8 +17,27 @@
 
       <!-- Content -->
       <div class="flex-1 overflow-y-auto p-6">
+        <!-- Sandbox Notice -->
+        <div v-if="isSandbox" class="mb-6 p-4 bg-indigo-900/20 border border-indigo-700/50 rounded-lg">
+          <div class="flex items-start gap-3">
+            <div class="flex-shrink-0">
+              <Icon name="mdi:alert-circle-outline" class="w-5 h-5 text-indigo-400/35" />
+            </div>
+            <div class="flex-1">
+              <h4 class="text-sm font-medium text-indigo-400 mb-1">Sandbox Environment</h4>
+              <p class="text-xs text-indigo-300 mb-1.5">
+                To ensure a clean environment for testing and security, <b>data</b> is automatically deleted periodically.
+              </p>
+              <div v-if="nextResetTime" class="flex items-center text-indigo-300/60 text-xs gap-1">
+                <Icon name="mdi:timer-outline" class="w-3.5 h-3.5" />
+                Next reset: {{ formatDateTime(nextResetTime) }}
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- YouTube Video Embed -->
-        <div class="aspect-video w-full mb-6 rounded-lg overflow-hidden bg-black">
+        <div class="w-full mb-4 rounded-lg overflow-hidden bg-black" style="aspect-ratio: 16/9; max-height: 420px;">
           <iframe
             :src="getYouTubeEmbedUrl(youtubeVideoLink)"
             class="w-full h-full"
@@ -42,11 +61,25 @@ const props = defineProps<{
   heading: string;
   youtubeVideoLink: string;
   description?: string;
+  isSandbox?: boolean;
+  nextResetTime?: string | null;
 }>();
 
 const emit = defineEmits<{
   close: [];
 }>();
+
+// Format date time for display
+const formatDateTime = (isoString: string): string => {
+  const date = new Date(isoString);
+  return date.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  });
+};
 
 // Convert YouTube URL to embed URL
 const getYouTubeEmbedUrl = (url: string): string => {

@@ -539,15 +539,26 @@
                     <label class="block text-sm font-medium text-gray-300">
                       Response Value <span class="text-red-400">*</span>
                     </label>
-                    <button
-                      v-if="statusMock.responseObjectId !== 'text-only' && statusMock.responseObjectId !== 'json-only'"
-                      type="button"
-                      @click="generateResponseValue(index)"
-                      class="text-sm text-gray-300 hover:text-gray-100 flex items-center gap-1"
-                    >
-                      <Icon name="mdi:refresh" class="w-4 h-4" />
-                      Regenerate
-                    </button>
+                    <div class="flex items-center gap-2">
+                      <button
+                        v-if="statusMock.responseObjectId === 'json-only'"
+                        type="button"
+                        @click="toggleAIPanel(index)"
+                        class="text-sm text-indigo-400 hover:text-indigo-300 flex items-center gap-1"
+                      >
+                        <Icon name="carbon:data-bin" class="w-4 h-4" />
+                        Regenerate with AI
+                      </button>
+                      <button
+                        v-if="statusMock.responseObjectId !== 'text-only' && statusMock.responseObjectId !== 'json-only'"
+                        type="button"
+                        @click="generateResponseValue(index)"
+                        class="text-sm text-gray-300 hover:text-gray-100 flex items-center gap-1"
+                      >
+                        <Icon name="mdi:refresh" class="w-4 h-4" />
+                        Regenerate
+                      </button>
+                    </div>
                   </div>
                   <div class="relative">
                     <textarea
@@ -566,6 +577,16 @@
                       <Icon name="hugeicons:ai-beautify" class="w-4 h-4" />
                     </button>
                   </div>
+                  <!-- AI Regeneration Panel -->
+                  <PopulateResponseStatusData
+                    v-if="aiPanelIndex === index"
+                    :method="form.method"
+                    :endpoint="form.endpoint"
+                    :status-code="statusMock.statusCode"
+                    :current-response="statusMock.responseValue || ''"
+                    @cancel="aiPanelIndex = null"
+                    @generated="(val) => handleAIGenerated(index, val)"
+                  />
                   <p class="mt-2 text-sm text-gray-400">
                     {{ statusMock.responseObjectId === 'text-only'
                       ? 'Enter any text, null, undefined, or leave empty for plain text response.'
@@ -689,9 +710,20 @@ const objectStore = useObjectStore();
 const projectStore = useProjectStore();
 
 const { canWrite, canDelete } = useAuth();
+const toast = useToast();
 
 const isNew = computed(() => route.params.id === 'new');
 const loading = ref(false);
+const aiPanelIndex = ref<number | null>(null);
+
+const toggleAIPanel = (index: number) => {
+  aiPanelIndex.value = aiPanelIndex.value === index ? null : index;
+};
+
+const handleAIGenerated = (index: number, responseValue: string) => {
+  form.statusMocks[index]!.responseValue = responseValue;
+  aiPanelIndex.value = null;
+};
 const showProjectSelector = ref(false);
 const showErrorModal = ref(false);
 const errorMessage = ref('');
@@ -1049,7 +1081,7 @@ const beautifyResponseJson = (index: number) => {
     const parsed = JSON.parse(statusMock.responseValue);
     statusMock.responseValue = JSON.stringify(parsed, null, 2);
   } catch (error) {
-    alert('Invalid JSON format. Please check your JSON syntax.');
+    toast.error('Invalid JSON format. Please check your JSON syntax.');
   }
 };
 
@@ -1060,7 +1092,7 @@ const beautifyErrorResponseJson = () => {
     const parsed = JSON.parse(form.errorResponseValue);
     form.errorResponseValue = JSON.stringify(parsed, null, 2);
   } catch (error) {
-    alert('Invalid JSON format. Please check your JSON syntax.');
+    toast.error('Invalid JSON format. Please check your JSON syntax.');
   }
 };
 
@@ -1087,7 +1119,7 @@ const createGroup = async () => {
 
   const existingGroups = currentProject.groups || [];
   if (existingGroups.includes(newGroupName.value.trim())) {
-    alert('Group already exists');
+    toast.warning('Group already exists');
     return;
   }
 
@@ -1102,7 +1134,7 @@ const createGroup = async () => {
     showCreateGroupInput.value = false;
   } catch (error) {
     console.error('Failed to create group:', error);
-    alert('Failed to create group');
+    toast.error('Failed to create group');
   }
 };
 
@@ -1117,13 +1149,13 @@ const handleSubmit = async () => {
   loading.value = true;
   try {
     if (!projectStore.selectedProjectId) {
-      alert('Please select a project first');
+      toast.warning('Please select a project first');
       loading.value = false;
       return;
     }
 
     if (form.statusMocks.length === 0) {
-      alert('Please add at least one status code configuration');
+      toast.warning('Please add at least one status code configuration');
       loading.value = false;
       return;
     }
@@ -1174,7 +1206,7 @@ const handleSubmit = async () => {
     router.push('/');
   } catch (error) {
     console.error('Failed to save API:', error);
-    alert('Failed to save API. Please check your input and try again.');
+    toast.error('Failed to save API. Please check your input and try again.');
   } finally {
     loading.value = false;
   }

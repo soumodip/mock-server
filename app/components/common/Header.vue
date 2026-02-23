@@ -9,6 +9,9 @@
       <button @click="copyToClipboard" class="ml-2 text-gray-400 hover:text-white transition-colors cursor-pointer">
         <Icon name="heroicons:clipboard-document" class="w-4 h-4 mt-1" />
       </button>
+      <button @click="navigateTo(githubRepositoryUri, { external: true, open: { target: '_blank' } })" class="ml-2 text-gray-400 hover:text-white transition-colors cursor-pointer">
+        <Icon name="akar-icons:link-out" class="w-3.5 h-3.5 mt-1" />
+      </button>
     </div>
     <div class="flex flex-row items-center">
       <button @click="showSettingsModal = true" class="text-xs mr-4 flex items-center cursor-pointer relative top-[-2px] text-white hover:opacity-80 transition-opacity">
@@ -24,7 +27,7 @@
   <div class="flex flex-row justify-between items-center px-4 pt-2 bg-[#242736] border border-1 border-gray-500/35 rounded-lg">
     <div class="flex flex-row items-center">
       <div class="flex items-center mr-8">
-        <div @click="navigateTo('/')" class="pb-2 text-md font-medium text-white hover:text-gray-100 transition-all cursor-pointer" :class="route.path === '/' ? 'opacity-100' : 'opacity-35'">
+        <div @click="navigateToPage('/')" class="pb-2 text-md font-medium text-white hover:text-gray-100 transition-all cursor-pointer" :class="route.path === '/' ? 'opacity-100' : 'opacity-35'">
           <span class="flex-row items-center">
             Mock Server
             <button @click.stop="openInfoModal('mockServer')"
@@ -35,7 +38,7 @@
         </div>
       </div>
       <div class="flex items-center">
-        <div @click="navigateTo('/prompts')" class="pb-2 text-md font-medium text-white hover:text-gray-100 transition-all cursor-pointer" :class="route.path === '/prompts' ? 'opacity-100' : 'opacity-35'">
+        <div @click="navigateToPage('/prompts')" class="pb-2 text-md font-medium text-white hover:text-gray-100 transition-all cursor-pointer" :class="route.path === '/prompts' ? 'opacity-100' : 'opacity-35'">
           <span class="flex-row items-center">
             Prompts
             <button @click.stop="openInfoModal('prompts')"
@@ -47,7 +50,7 @@
       </div>
     </div>
     <div class="flex items-center gap-4">
-      <div @click="navigateTo('/integrations')" class="text-sm flex items-center cursor-pointer relative top-[-2px] transition-all" :class="route.path === '/integrations' ? 'opacity-100' : 'opacity-35'">
+      <div @click="navigateToPage('/integrations')" class="text-sm flex items-center cursor-pointer relative top-[-2px] transition-all" :class="route.path === '/integrations' ? 'opacity-100' : 'opacity-35'">
         <Icon name="material-symbols-light:sdk" class="w-6 h-6 text-white hover:text-gray-300 transition-colors" />
         <span class="ml-2 text-white hover:text-gray-300 transition-colors">Integrate Docs with SDK</span>
       </div>
@@ -72,6 +75,8 @@
 </template>
 
 <script setup lang="ts">
+import type { external } from 'jszip';
+
 const route = useRoute();
 const router = useRouter();
 const showInfoModal = ref(false);
@@ -87,7 +92,7 @@ const toggleAddonsDropdown = () => {
 
 const handleAddonClick = (path: string) => {
   showAddonsDropdown.value = false;
-  navigateTo(path);
+  navigateToPage(path);
 };
 
 // Auth composable
@@ -132,7 +137,7 @@ const openInfoModal = (type: 'mockServer' | 'prompts') => {
   showInfoModal.value = true;
 };
 
-const navigateTo = (path: string) => {
+const navigateToPage = (path: string) => {
   const currentPath = route.path;
   const projectId = route.query.project_id;
 

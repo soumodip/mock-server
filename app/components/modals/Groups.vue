@@ -175,6 +175,7 @@ const newGroupIsAdminPanelPage = ref(false);
 const editingIndex = ref<number | null>(null);
 const editingGroupName = ref('');
 const editingIsAdminPanelPage = ref(false);
+const { confirm } = useConfirmDialog();
 const loading = ref(false);
 const error = ref('');
 
@@ -281,7 +282,7 @@ const handleDeleteGroup = async (index: number, groupName: string) => {
   if (!props.project) return;
 
   // Confirm deletion
-  if (!confirm(`Are you sure you want to delete the group "${groupName}"? This will also remove it from all APIs.`)) {
+  if (!await confirm({ title: 'Delete Group', message: `Are you sure you want to delete the group "${groupName}"? This will also remove it from all APIs.` })) {
     return;
   }
 

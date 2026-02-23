@@ -203,6 +203,7 @@ const emit = defineEmits<{
   close: [];
 }>();
 
+const toast = useToast();
 const saving = ref(false);
 const showSuccess = ref(false);
 const selectedProvider = ref<'openai' | 'anthropic' | 'ollama' | 'azure'>('openai');
@@ -336,7 +337,7 @@ const saveSettings = async () => {
     }, 1500);
   } catch (error) {
     console.error('Error saving settings:', error);
-    alert('Failed to save settings. Please try again.');
+    toast.error('Failed to save settings. Please try again.');
   } finally {
     saving.value = false;
   }

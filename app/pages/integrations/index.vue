@@ -368,6 +368,8 @@
     <!-- Getting Started Modal -->
     <ModalsGettingStarted v-if="modal?.type == 'getting-started'" :heading="gettingStartedData.heading"
       :youtube-video-link="gettingStartedData.youtubeVideoLink" :description="gettingStartedData.description"
+      :is-sandbox="isDataResetEnabled"
+      :next-reset-time="nextResetTime"
       @close="closeModal" />
 
     <!-- Integrations CRUD Modal -->
@@ -379,11 +381,13 @@
     />
 
     <!-- Floating Info Button -->
-    <button @click="openModal('getting-started', null)"
-      class="fixed bottom-6 right-6 bg-[#2d3142] text-gray-300 rounded-full shadow-lg transition-colors flex items-center justify-center w-10 h-10 hover:bg-[#353849]"
-      title="Info">
-      <Icon name="teenyicons:screen-outline" class="w-5 h-5" />
-    </button>
+    <div class="fixed bottom-6 right-6 flex items-center gap-2">
+      <button @click="openModal('getting-started', null)"
+        class="relative bg-[#2d3142] text-gray-300 rounded-xl shadow-lg transition-colors flex items-center justify-center w-10 h-10 hover:bg-[#353849]"
+        title="Info">
+        <Icon name="teenyicons:screen-outline" class="w-5 h-5" />
+      </button>
+    </div>
   </div>
 </template>
 
@@ -394,6 +398,8 @@ import CommonDropdown from '~/components/common/Dropdown.vue';
 import IntegrationsModal from '~/components/modals/integrations/Crud.vue'
 // Stores
 import { useProjectStore } from '~/stores/project';
+// Composables
+import { useDataReset } from '~/composables/useDataReset';
 
 interface Integration {
   id: string;
@@ -427,6 +433,9 @@ interface SessionResponse {
 }
 
 const projectStore = useProjectStore();
+
+// Data reset (singleton — intervals are managed by DataResetOverlay in layout)
+const { isDataResetEnabled, nextResetTime } = useDataReset();
 
 const appConfig = useAppConfig();
 const mockServerBaseUri = appConfig.baseUri || `http://localhost:4001`;
@@ -509,6 +518,8 @@ const docsUri = computed(() => {
 });
 
 const { canWrite, canDelete } = useAuth();
+const toast = useToast();
+const { confirm } = useConfirmDialog();
 
 const handleProjectChange = async () => {
   // Update URL with project_id
@@ -612,7 +623,7 @@ const loadSessions = async () => {
 const clearSessions = async () => {
   if (!selectedIntegrationId.value) return;
 
-  if (!confirm('Are you sure you want to clear all sessions for this integration? This action cannot be undone.')) {
+  if (!await confirm({ title: 'Clear Sessions', message: 'Are you sure you want to clear all sessions for this integration? This action cannot be undone.' })) {
     return;
   }
 
@@ -624,7 +635,7 @@ const clearSessions = async () => {
     sessionResponseCounts.value = {};
   } catch (error) {
     console.error('Failed to clear sessions:', error);
-    alert('Failed to clear sessions');
+    toast.error('Failed to clear sessions');
   }
 };
 
@@ -685,7 +696,7 @@ const createIntegration = async (name: string) => {
     closeCreateModal();
   } catch (error) {
     console.error('Failed to create integration:', error);
-    alert('Failed to create integration');
+    toast.error('Failed to create integration');
   } finally {
     loading.value = false;
   }
@@ -699,7 +710,7 @@ const viewSessionDetails = async (session: Session) => {
     showSessionModal.value = true;
   } catch (error) {
     console.error('Failed to load session details:', error);
-    alert('Failed to load session details');
+    toast.error('Failed to load session details');
   }
 };
 
@@ -816,7 +827,7 @@ const saveAllSettings = async () => {
   } catch (error: any) {
     console.error('Failed to save settings:', error);
     const errorMessage = error?.data?.message || error?.message || 'Unknown error occurred';
-    alert(`Failed to save settings: ${errorMessage}`);
+    toast.error(`Failed to save settings: ${errorMessage}`);
   }
 };
 
@@ -845,7 +856,7 @@ const updateIntegrationSettings = async () => {
   } catch (error: any) {
     console.error('Failed to update integration settings:', error);
     const errorMessage = error?.data?.message || error?.message || 'Unknown error occurred';
-    alert(`Failed to update integration settings: ${errorMessage}`);
+    toast.error(`Failed to update integration settings: ${errorMessage}`);
   }
 };
 
@@ -874,7 +885,7 @@ const updateCorsSettings = async () => {
   } catch (error: any) {
     console.error('Failed to update CORS settings:', error);
     const errorMessage = error?.data?.message || error?.message || 'Unknown error occurred';
-    alert(`Failed to update CORS settings: ${errorMessage}`);
+    toast.error(`Failed to update CORS settings: ${errorMessage}`);
   }
 };
 

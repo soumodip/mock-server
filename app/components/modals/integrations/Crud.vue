@@ -112,6 +112,7 @@ const emit = defineEmits<{
   update: [];
 }>();
 
+const { confirm } = useConfirmDialog();
 const editingId = ref<string | null>(null);
 const editingName = ref('');
 const loading = ref(false);
@@ -173,7 +174,7 @@ const handleSaveEdit = async (id: string) => {
 
 const handleDeleteIntegration = async (id: string, name: string) => {
   // Confirm deletion
-  if (!confirm(`Are you sure you want to delete the integration "${name}"? This action cannot be undone.`)) {
+  if (!await confirm({ title: 'Delete Integration', message: `Are you sure you want to delete the integration "${name}"? This action cannot be undone.` })) {
     return;
   }
 

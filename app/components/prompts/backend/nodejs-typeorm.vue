@@ -52,6 +52,7 @@ import Dropdown from '~/components/common/Dropdown.vue';
 const projectStore = useProjectStore();
 const apiStore = useApiStore();
 const objectStore = useObjectStore();
+const toast = useToast();
 
 // Inject scrollToSteps from parent
 const scrollToSteps = inject<(() => Promise<void>) | undefined>('scrollToSteps');
@@ -955,7 +956,7 @@ const copyPromptToClipboard = async () => {
     }, 2000);
   } catch (error) {
     console.error('Failed to copy prompt to clipboard:', error);
-    alert('Failed to copy to clipboard. Please check browser permissions.');
+    toast.error('Failed to copy to clipboard. Please check browser permissions.');
   }
 };
 </script>

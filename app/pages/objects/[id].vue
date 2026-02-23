@@ -307,6 +307,7 @@ const projectStore = useProjectStore();
 
 // Auth composable
 const { logout, isAuthEnabled, canWrite, canDelete } = useAuth();
+const toast = useToast();
 
 const handleLogout = () => {
   logout();
@@ -443,14 +444,14 @@ const handleErrorModalClose = () => {
 
 const handleSubmit = async () => {
   if (form.fields.length === 0) {
-    alert('Please add at least one field');
+    toast.warning('Please add at least one field');
     return;
   }
 
   loading.value = true;
   try {
     if (!projectStore.selectedProjectId) {
-      alert('Please select a project first');
+      toast.warning('Please select a project first');
       loading.value = false;
       return;
     }
@@ -475,7 +476,7 @@ const handleSubmit = async () => {
     router.push('/');
   } catch (error) {
     console.error('Failed to save object:', error);
-    alert('Failed to save object. Please check your input and try again.');
+    toast.error('Failed to save object. Please check your input and try again.');
   } finally {
     loading.value = false;
   }
