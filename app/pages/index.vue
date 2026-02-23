@@ -1048,6 +1048,7 @@ const appConfig = useAppConfig();
 
 // Data reset (singleton — intervals are managed by DataResetOverlay in layout)
 const { isDataResetEnabled, nextResetTime } = useDataReset();
+const toast = useToast();
 
 const modal = ref<Modal | null>(null);
 const accessTokenInput = ref('');
@@ -1325,13 +1326,13 @@ const handlePopulateOption = async (option: { value: string | number }) => {
     try {
       const llmConfig = await $fetch('/api/llm');
       if (!llmConfig) {
-        alert('No LLM provider configured. Please configure an LLM provider in Settings first.');
+        toast.info('No LLM provider configured. Please configure an LLM provider in Settings first.');
         return;
       }
       isPopulateMode.value = true;
       selectedApiIds.value = new Set();
     } catch {
-      alert('Failed to check LLM configuration. Please try again.');
+      toast.error('Failed to check LLM configuration. Please try again.');
     }
   }
 };
@@ -1454,7 +1455,7 @@ const toggleProjectAuth = async () => {
     }
   } catch (error) {
     console.error('Failed to toggle auth:', error);
-    alert('Failed to toggle auth');
+    toast.error('Failed to toggle auth');
   }
 };
 
@@ -1491,7 +1492,7 @@ const updateAuthConfig = async () => {
   } catch (error: any) {
     console.error('Failed to update auth config:', error);
     console.error('Error details:', error.data || error.message || error);
-    alert(`Failed to update auth config: ${error.data?.message || error.message || 'Unknown error'}`);
+    toast.error(`Failed to update auth config: ${error.data?.message || error.message || 'Unknown error'}`);
   }
 };
 
@@ -1511,7 +1512,7 @@ const regenerateBearerToken = async () => {
     });
   } catch (error) {
     console.error('Failed to regenerate bearer token:', error);
-    alert('Failed to regenerate bearer token');
+    toast.error('Failed to regenerate bearer token');
   }
 };
 
@@ -1625,7 +1626,7 @@ const regenerateAuthCredentials = async () => {
     if (error?.data?.message) {
       console.error('Server error:', error.data.message);
     }
-    alert(`Failed to update after regeneration: ${error.data?.message || error.message || 'Unknown error'}`);
+    toast.error(`Failed to update after regeneration: ${error.data?.message || error.message || 'Unknown error'}`);
   }
 };
 
@@ -1641,7 +1642,7 @@ const updateAccessToken = async () => {
     });
   } catch (error) {
     console.error('Failed to update access token:', error);
-    alert('Failed to update access token');
+    toast.error('Failed to update access token');
   }
 };
 
@@ -1660,7 +1661,7 @@ const regenerateAccessToken = async () => {
     accessTokenInput.value = newAccessToken;
   } catch (error) {
     console.error('Failed to regenerate access token:', error);
-    alert('Failed to regenerate access token');
+    toast.error('Failed to regenerate access token');
   }
 };
 
@@ -1693,7 +1694,7 @@ const handleCreateProject = async (name: string) => {
     window.location.href = `/?project_id=${newProject.id}&new_project=1`;
   } catch (error) {
     console.error('Failed to create project:', error);
-    alert('Failed to create project');
+    toast.error('Failed to create project');
   }
 };
 
@@ -1713,7 +1714,7 @@ const handleUploadProject = async (data: { project: any; apis: any[]; objects: a
     closeModal();
   } catch (error) {
     console.error('Failed to upload project:', error);
-    alert('Failed to upload project');
+    toast.error('Failed to upload project');
   }
 };
 
@@ -1724,7 +1725,7 @@ const handleDeleteProject = async () => {
     closeModal();
   } catch (error) {
     console.error('Failed to delete project:', error);
-    alert('Failed to delete project');
+    toast.error('Failed to delete project');
   }
 };
 
@@ -2718,7 +2719,7 @@ const handleDeleteApi = async () => {
     closeModal();
   } catch (error) {
     console.error('Failed to delete API:', error);
-    alert('Failed to delete API');
+    toast.error('Failed to delete API');
   }
 };
 
@@ -2792,7 +2793,7 @@ const handleDeleteObject = async () => {
     closeModal();
   } catch (error) {
     console.error('Failed to delete object:', error);
-    alert('Failed to delete object');
+    toast.error('Failed to delete object');
   }
 };
 

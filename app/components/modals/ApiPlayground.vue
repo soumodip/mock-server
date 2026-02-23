@@ -243,6 +243,7 @@ const emit = defineEmits<{
   close: [];
 }>();
 
+const toast = useToast();
 const tabs = ['Params', 'Headers', 'Query', 'Body'];
 const activeTab = ref('Params');
 
@@ -360,7 +361,7 @@ const beautifyRequestBody = () => {
     const parsed = JSON.parse(requestBody.value);
     requestBody.value = JSON.stringify(parsed, null, 2);
   } catch (error) {
-    alert('Invalid JSON format. Please check your JSON syntax.');
+    toast.error('Invalid JSON format. Please check your JSON syntax.');
   }
 };
 

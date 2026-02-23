@@ -187,6 +187,7 @@ import type { Page, Component } from '~/components/modals/prompts/Screen.vue';
 const projectStore = useProjectStore();
 const apiStore = useApiStore();
 const appConfig = useAppConfig();
+const { confirm } = useConfirmDialog();
 
 const mockServerBaseUri = appConfig.baseUri || `http://localhost:4001`;
 
@@ -256,8 +257,8 @@ const saveScreen = (screen: Page) => {
   closeModal();
 };
 
-const deleteScreen = (index: number) => {
-  if (confirm('Are you sure you want to delete this screen?')) {
+const deleteScreen = async (index: number) => {
+  if (await confirm({ title: 'Delete Screen', message: 'Are you sure you want to delete this screen?' })) {
     screens.value.splice(index, 1);
   }
 };
@@ -289,8 +290,8 @@ const saveComponent = (component: Component) => {
   closeComponentModal();
 };
 
-const deleteComponent = (index: number) => {
-  if (confirm('Are you sure you want to delete this component?')) {
+const deleteComponent = async (index: number) => {
+  if (await confirm({ title: 'Delete Component', message: 'Are you sure you want to delete this component?' })) {
     components.value.splice(index, 1);
   }
 };

@@ -518,6 +518,8 @@ const docsUri = computed(() => {
 });
 
 const { canWrite, canDelete } = useAuth();
+const toast = useToast();
+const { confirm } = useConfirmDialog();
 
 const handleProjectChange = async () => {
   // Update URL with project_id
@@ -621,7 +623,7 @@ const loadSessions = async () => {
 const clearSessions = async () => {
   if (!selectedIntegrationId.value) return;
 
-  if (!confirm('Are you sure you want to clear all sessions for this integration? This action cannot be undone.')) {
+  if (!await confirm({ title: 'Clear Sessions', message: 'Are you sure you want to clear all sessions for this integration? This action cannot be undone.' })) {
     return;
   }
 
@@ -633,7 +635,7 @@ const clearSessions = async () => {
     sessionResponseCounts.value = {};
   } catch (error) {
     console.error('Failed to clear sessions:', error);
-    alert('Failed to clear sessions');
+    toast.error('Failed to clear sessions');
   }
 };
 
@@ -694,7 +696,7 @@ const createIntegration = async (name: string) => {
     closeCreateModal();
   } catch (error) {
     console.error('Failed to create integration:', error);
-    alert('Failed to create integration');
+    toast.error('Failed to create integration');
   } finally {
     loading.value = false;
   }
@@ -708,7 +710,7 @@ const viewSessionDetails = async (session: Session) => {
     showSessionModal.value = true;
   } catch (error) {
     console.error('Failed to load session details:', error);
-    alert('Failed to load session details');
+    toast.error('Failed to load session details');
   }
 };
 
@@ -825,7 +827,7 @@ const saveAllSettings = async () => {
   } catch (error: any) {
     console.error('Failed to save settings:', error);
     const errorMessage = error?.data?.message || error?.message || 'Unknown error occurred';
-    alert(`Failed to save settings: ${errorMessage}`);
+    toast.error(`Failed to save settings: ${errorMessage}`);
   }
 };
 
@@ -854,7 +856,7 @@ const updateIntegrationSettings = async () => {
   } catch (error: any) {
     console.error('Failed to update integration settings:', error);
     const errorMessage = error?.data?.message || error?.message || 'Unknown error occurred';
-    alert(`Failed to update integration settings: ${errorMessage}`);
+    toast.error(`Failed to update integration settings: ${errorMessage}`);
   }
 };
 
@@ -883,7 +885,7 @@ const updateCorsSettings = async () => {
   } catch (error: any) {
     console.error('Failed to update CORS settings:', error);
     const errorMessage = error?.data?.message || error?.message || 'Unknown error occurred';
-    alert(`Failed to update CORS settings: ${errorMessage}`);
+    toast.error(`Failed to update CORS settings: ${errorMessage}`);
   }
 };
 

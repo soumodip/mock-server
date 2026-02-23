@@ -220,6 +220,7 @@ import type { Page, Component } from '~/components/modals/prompts/Screen.vue';
 const projectStore = useProjectStore();
 const apiStore = useApiStore();
 const appConfig = useAppConfig();
+const { confirm } = useConfirmDialog();
 
 // Inject scrollToSteps from parent
 const scrollToSteps = inject<(() => Promise<void>) | undefined>('scrollToSteps');
@@ -291,8 +292,8 @@ const savePage = (page: Page) => {
   closePageModal();
 };
 
-const deletePage = (index: number) => {
-  if (confirm('Are you sure you want to delete this page?')) {
+const deletePage = async (index: number) => {
+  if (await confirm({ title: 'Delete Page', message: 'Are you sure you want to delete this page?' })) {
     pages.value.splice(index, 1);
   }
 };
@@ -325,8 +326,8 @@ const saveComponent = (component: Component) => {
   closeComponentModal();
 };
 
-const deleteComponent = (index: number) => {
-  if (confirm('Are you sure you want to delete this component?')) {
+const deleteComponent = async (index: number) => {
+  if (await confirm({ title: 'Delete Component', message: 'Are you sure you want to delete this component?' })) {
     components.value.splice(index, 1);
   }
 };

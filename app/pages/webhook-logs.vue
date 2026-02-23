@@ -316,6 +316,7 @@ const projectStore = useProjectStore();
 
 // Data reset (singleton — intervals are managed by DataResetOverlay in layout)
 const { isDataResetEnabled, nextResetTime } = useDataReset();
+const { confirm } = useConfirmDialog();
 
 const webhooks = ref<Webhook[]>([]);
 const logs = ref<WebhookLog[]>([]);
@@ -493,7 +494,7 @@ const createWebhook = async () => {
 
 // Delete a webhook
 const deleteWebhook = async (webhook: Webhook) => {
-  if (!confirm('Are you sure you want to delete this webhook? All associated logs will also be deleted.')) return;
+  if (!await confirm({ title: 'Delete Webhook', message: 'Are you sure you want to delete this webhook? All associated logs will also be deleted.' })) return;
 
   try {
     await $fetch(`/api/webhooks/${webhook.id}`, {
@@ -536,7 +537,7 @@ const togglePinWebhook = async (webhook: Webhook) => {
 
 // Clear logs for a specific webhook
 const clearWebhookLogs = async (webhook: Webhook) => {
-  if (!confirm('Are you sure you want to clear all logs for this webhook?')) return;
+  if (!await confirm({ title: 'Clear Logs', message: 'Are you sure you want to clear all logs for this webhook?' })) return;
 
   try {
     await $fetch('/api/webhook-logs/clear', {

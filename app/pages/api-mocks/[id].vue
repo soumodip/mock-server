@@ -710,6 +710,7 @@ const objectStore = useObjectStore();
 const projectStore = useProjectStore();
 
 const { canWrite, canDelete } = useAuth();
+const toast = useToast();
 
 const isNew = computed(() => route.params.id === 'new');
 const loading = ref(false);
@@ -1080,7 +1081,7 @@ const beautifyResponseJson = (index: number) => {
     const parsed = JSON.parse(statusMock.responseValue);
     statusMock.responseValue = JSON.stringify(parsed, null, 2);
   } catch (error) {
-    alert('Invalid JSON format. Please check your JSON syntax.');
+    toast.error('Invalid JSON format. Please check your JSON syntax.');
   }
 };
 
@@ -1091,7 +1092,7 @@ const beautifyErrorResponseJson = () => {
     const parsed = JSON.parse(form.errorResponseValue);
     form.errorResponseValue = JSON.stringify(parsed, null, 2);
   } catch (error) {
-    alert('Invalid JSON format. Please check your JSON syntax.');
+    toast.error('Invalid JSON format. Please check your JSON syntax.');
   }
 };
 
@@ -1118,7 +1119,7 @@ const createGroup = async () => {
 
   const existingGroups = currentProject.groups || [];
   if (existingGroups.includes(newGroupName.value.trim())) {
-    alert('Group already exists');
+    toast.warning('Group already exists');
     return;
   }
 
@@ -1133,7 +1134,7 @@ const createGroup = async () => {
     showCreateGroupInput.value = false;
   } catch (error) {
     console.error('Failed to create group:', error);
-    alert('Failed to create group');
+    toast.error('Failed to create group');
   }
 };
 
@@ -1148,13 +1149,13 @@ const handleSubmit = async () => {
   loading.value = true;
   try {
     if (!projectStore.selectedProjectId) {
-      alert('Please select a project first');
+      toast.warning('Please select a project first');
       loading.value = false;
       return;
     }
 
     if (form.statusMocks.length === 0) {
-      alert('Please add at least one status code configuration');
+      toast.warning('Please add at least one status code configuration');
       loading.value = false;
       return;
     }
@@ -1205,7 +1206,7 @@ const handleSubmit = async () => {
     router.push('/');
   } catch (error) {
     console.error('Failed to save API:', error);
-    alert('Failed to save API. Please check your input and try again.');
+    toast.error('Failed to save API. Please check your input and try again.');
   } finally {
     loading.value = false;
   }

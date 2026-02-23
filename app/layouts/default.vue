@@ -3,6 +3,9 @@
         <slot />
         <!-- Data reset overlay: timer badge + reset modal (mounted once, shared across all pages) -->
         <DataResetOverlay />
+        <!-- Global toast notifications and confirm dialog -->
+        <CommonToast />
+        <CommonConfirmDialog />
     </div>
 </template>
 
