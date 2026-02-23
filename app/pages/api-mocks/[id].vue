@@ -539,15 +539,26 @@
                     <label class="block text-sm font-medium text-gray-300">
                       Response Value <span class="text-red-400">*</span>
                     </label>
-                    <button
-                      v-if="statusMock.responseObjectId !== 'text-only' && statusMock.responseObjectId !== 'json-only'"
-                      type="button"
-                      @click="generateResponseValue(index)"
-                      class="text-sm text-gray-300 hover:text-gray-100 flex items-center gap-1"
-                    >
-                      <Icon name="mdi:refresh" class="w-4 h-4" />
-                      Regenerate
-                    </button>
+                    <div class="flex items-center gap-2">
+                      <button
+                        v-if="statusMock.responseObjectId === 'json-only'"
+                        type="button"
+                        @click="toggleAIPanel(index)"
+                        class="text-sm text-indigo-400 hover:text-indigo-300 flex items-center gap-1"
+                      >
+                        <Icon name="carbon:data-bin" class="w-4 h-4" />
+                        Regenerate with AI
+                      </button>
+                      <button
+                        v-if="statusMock.responseObjectId !== 'text-only' && statusMock.responseObjectId !== 'json-only'"
+                        type="button"
+                        @click="generateResponseValue(index)"
+                        class="text-sm text-gray-300 hover:text-gray-100 flex items-center gap-1"
+                      >
+                        <Icon name="mdi:refresh" class="w-4 h-4" />
+                        Regenerate
+                      </button>
+                    </div>
                   </div>
                   <div class="relative">
                     <textarea
@@ -566,6 +577,16 @@
                       <Icon name="hugeicons:ai-beautify" class="w-4 h-4" />
                     </button>
                   </div>
+                  <!-- AI Regeneration Panel -->
+                  <PopulateResponseStatusData
+                    v-if="aiPanelIndex === index"
+                    :method="form.method"
+                    :endpoint="form.endpoint"
+                    :status-code="statusMock.statusCode"
+                    :current-response="statusMock.responseValue || ''"
+                    @cancel="aiPanelIndex = null"
+                    @generated="(val) => handleAIGenerated(index, val)"
+                  />
                   <p class="mt-2 text-sm text-gray-400">
                     {{ statusMock.responseObjectId === 'text-only'
                       ? 'Enter any text, null, undefined, or leave empty for plain text response.'
@@ -692,6 +713,16 @@ const { canWrite, canDelete } = useAuth();
 
 const isNew = computed(() => route.params.id === 'new');
 const loading = ref(false);
+const aiPanelIndex = ref<number | null>(null);
+
+const toggleAIPanel = (index: number) => {
+  aiPanelIndex.value = aiPanelIndex.value === index ? null : index;
+};
+
+const handleAIGenerated = (index: number, responseValue: string) => {
+  form.statusMocks[index]!.responseValue = responseValue;
+  aiPanelIndex.value = null;
+};
 const showProjectSelector = ref(false);
 const showErrorModal = ref(false);
 const errorMessage = ref('');

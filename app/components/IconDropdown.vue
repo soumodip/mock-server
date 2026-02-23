@@ -1,20 +1,20 @@
 <template>
   <div class="relative" ref="dropdownRef">
     <button
-      v-if="options.length > 1"
+      v-if="options.length >= 1"
       ref="buttonRef"
       @click.stop="toggleDropdown"
-      class="text-gray-400 hover:text-gray-300 p-0.5 rounded hover:bg-[#353849] transition-colors"
+      class="flex flex-row items-center justify-center text-gray-400 hover:text-gray-300 px-1.5 py-1 rounded hover:opacity-100 opacity-80"
       :title="title">
-      <Icon :name="icon" class="w-3.5 h-3.5 mt-1 ml-1 opacity-45" />
+      <Icon :name="icon" class="w-3.5 h-3.5 my-1 opacity-45" />
     </button>
     <!-- Dropdown -->
     <Teleport to="body">
       <div
         v-if="isOpen"
         ref="menuRef"
-        class="fixed z-[9999] bg-[#2d3142] border border-gray-600 rounded-lg shadow-lg py-1 min-w-[100px] font-poppins"
-        :style="dropdownStyle">
+        class="fixed z-[9999] bg-[#2d3142] border border-gray-600 rounded-lg shadow-lg py-1 font-poppins"
+        :style="{ ...dropdownStyle, minWidth: props.minWidth }">
         <button
           v-for="option in options"
           :key="option.value"
@@ -40,9 +40,13 @@ const props = withDefaults(defineProps<{
   options: DropdownOption[]
   icon?: string
   title?: string
+  alignment?: 'bottom-left' | 'bottom-right' | 'top-left' | 'top-right'
+  minWidth?: string
 }>(), {
   icon: 'mingcute:edit-line',
-  title: 'Select option'
+  title: 'Select option',
+  alignment: 'bottom-left',
+  minWidth: '100px'
 })
 
 const emit = defineEmits<{
@@ -59,9 +63,35 @@ const updateDropdownPosition = () => {
   if (!buttonRef.value) return
 
   const rect = buttonRef.value.getBoundingClientRect()
-  dropdownStyle.value = {
-    top: `${rect.bottom + 4}px`,
-    left: `${rect.left}px`,
+  const menuRect = menuRef.value?.getBoundingClientRect()
+  const gap = 4
+  const menuHeight = menuRect?.height ?? 0
+  const menuWidth = menuRect?.width ?? 0
+
+  switch (props.alignment) {
+    case 'top-left':
+      dropdownStyle.value = {
+        top: `${rect.top - menuHeight - gap}px`,
+        left: `${rect.left}px`,
+      }
+      break
+    case 'top-right':
+      dropdownStyle.value = {
+        top: `${rect.top - menuHeight - gap}px`,
+        left: `${rect.right - menuWidth}px`,
+      }
+      break
+    case 'bottom-right':
+      dropdownStyle.value = {
+        top: `${rect.bottom + gap}px`,
+        left: `${rect.right - menuWidth}px`,
+      }
+      break
+    default: // bottom-left
+      dropdownStyle.value = {
+        top: `${rect.bottom + gap}px`,
+        left: `${rect.left}px`,
+      }
   }
 }
 
@@ -73,6 +103,10 @@ watch(isOpen, (newVal) => {
   if (newVal) {
     nextTick(() => {
       updateDropdownPosition()
+      // Second tick to recalculate with actual menu dimensions
+      nextTick(() => {
+        updateDropdownPosition()
+      })
     })
   }
 })
