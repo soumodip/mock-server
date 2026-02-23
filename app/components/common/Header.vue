@@ -10,7 +10,7 @@
         <Icon name="heroicons:clipboard-document" class="w-4 h-4 mt-1" />
       </button>
       <button @click="navigateTo(githubRepositoryUri, { external: true, open: { target: '_blank' } })" class="ml-2 text-gray-400 hover:text-white transition-colors cursor-pointer">
-        <Icon name="akar-icons:link-out" class="w-4 h-4 mt-1" />
+        <Icon name="akar-icons:link-out" class="w-3.5 h-3.5 mt-1" />
       </button>
     </div>
     <div class="flex flex-row items-center">
